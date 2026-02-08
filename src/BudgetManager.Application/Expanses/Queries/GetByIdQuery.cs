@@ -1,13 +1,18 @@
+using BudgetManager.Domain.Errors;
+using BudgetManager.Domain.Primitives;
+
 namespace BudgetManager.Application.Expanses.Queries;
 
-public class GetByIdQueryHandler(IApplicationDbContext context) : IRequestHandler<GetByIdQuery, GetByIdQueryResponse>
+public class GetByIdQueryHandler(IApplicationDbContext context) 
+    : IRequestHandler<GetByIdQuery, Result<GetByIdQueryResponse>>
 {
-    public async Task<GetByIdQueryResponse> Handle(GetByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<GetByIdQueryResponse>> Handle(GetByIdQuery request, CancellationToken cancellationToken)
     {
         var expanse = await context.Expanses
-            .Where(e => !e.IsDeleted)
-            .FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken)
-            ?? throw new Exception("Expanse not found.");
+            .FindAsync([request.Id], cancellationToken);
+
+        if (expanse == null)
+            return ExpanseError.NotFound(request.Id);
         
         return new GetByIdQueryResponse(
             expanse.Id,
@@ -17,7 +22,7 @@ public class GetByIdQueryHandler(IApplicationDbContext context) : IRequestHandle
     }
 }
 
-public record GetByIdQuery(int Id) : IRequest<GetByIdQueryResponse>;
+public record GetByIdQuery(int Id) : IRequest<Result<GetByIdQueryResponse>>;
 
 public record GetByIdQueryResponse(
     int Id, 

@@ -1,9 +1,11 @@
+using BudgetManager.Domain.Primitives;
+
 namespace BudgetManager.Application.Expanses.Queries;
 
 public class GetListQueryHandler(IApplicationDbContext context) 
-    : IRequestHandler<GetListQuery, List<GetListQueryResponse>>
+    : IRequestHandler<GetListQuery, Result<List<GetListQueryResponse>>>
 {
-    public async Task<List<GetListQueryResponse>> Handle(GetListQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
     {
         var expanses = await context.Expanses
             .Where(e => !e.IsDeleted)
@@ -20,7 +22,8 @@ public class GetListQueryHandler(IApplicationDbContext context)
     }
 }
 
-public record GetListQuery(int PageIndex, int PageSize) : IRequest<List<GetListQueryResponse>>;
+public record GetListQuery(int PageIndex, int PageSize) 
+    : IRequest<Result<List<GetListQueryResponse>>>;
 
 public record GetListQueryResponse(
     int Id, 

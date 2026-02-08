@@ -1,11 +1,13 @@
+using BudgetManager.Domain.Primitives;
+
 namespace BudgetManager.Application.Expanses.Commands.CreateExpanse;
 
 public class CreateExpanseCommandHandler(
     IApplicationDbContext context,
     IValidator<CreateExpanseCommand> validator) 
-    : IRequestHandler<CreateExpanseCommand>
+    : IRequestHandler<CreateExpanseCommand, Result>
 {
-    public async Task Handle(CreateExpanseCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(CreateExpanseCommand request, CancellationToken cancellationToken)
     {
         var validationResult = await validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
@@ -16,10 +18,12 @@ public class CreateExpanseCommandHandler(
         context.Expanses.Add(expanse);
         
         await context.SaveChangesAsync(cancellationToken);
+        
+        return Result.Success();
     }
 }
 
 public record CreateExpanseCommand(
     decimal Amount, 
     string Description, 
-    ExpanseCategory Category) : IRequest;
+    ExpanseCategory Category) : IRequest<Result>;
